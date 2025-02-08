@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,7 +34,7 @@ public class AuthenticationService {
 
     @NonFinal
     @Value("${app.security.signer-key}")
-    protected static final String SIGNER_KEY = "eEmR4ZiPm+egYJTJg2RPyk435T+qelei+6nLQNUOdTBeOVQJrAqrMqnysZnC/NRA";
+    protected String signerKey;
 
     // Xác nhận đã đăng nhập thành công hay chưa
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -73,7 +72,7 @@ public class AuthenticationService {
         JWSObject jwsObject = new JWSObject(header, payload);
 
         try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            jwsObject.sign(new MACSigner(signerKey.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
             throw new RuntimeException(e);
@@ -84,7 +83,7 @@ public class AuthenticationService {
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
         // Tạo đối tượng JWSVerifier để xác minh token
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
         // Phân tích token
         SignedJWT signedJWT = SignedJWT.parse(token);
         // Lấy thời gian hết hạn của token

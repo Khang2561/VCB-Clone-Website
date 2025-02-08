@@ -4,11 +4,11 @@ import com.website.vcb.dto.request.UserCreationRequest;
 import com.website.vcb.dto.request.UserUpdateRequest;
 import com.website.vcb.dto.response.UserResponse;
 import com.website.vcb.entity.User;
+import com.website.vcb.enums.Role;
 import com.website.vcb.exception.ErrorCode;
 import com.website.vcb.mapper.UserMapper;
 import com.website.vcb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +20,8 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     //Tạo user mới
     public UserResponse createUser(UserCreationRequest request){
@@ -29,8 +31,10 @@ public class UserService {
         }
         //Mã hóa mật khẩu
         User user = userMapper.toUser(request);
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        // Set role cho user
+        String roles = Role.USER.name();
+        user.setRoles(roles);
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
