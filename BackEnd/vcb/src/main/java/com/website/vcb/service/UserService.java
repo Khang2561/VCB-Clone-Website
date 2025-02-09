@@ -5,14 +5,19 @@ import com.website.vcb.dto.request.UserUpdateRequest;
 import com.website.vcb.dto.response.UserResponse;
 import com.website.vcb.entity.User;
 import com.website.vcb.enums.Role;
+import com.website.vcb.exception.AppException;
 import com.website.vcb.exception.ErrorCode;
 import com.website.vcb.mapper.UserMapper;
 import com.website.vcb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -39,11 +44,13 @@ public class UserService {
     }
 
     // Lấy toàn bộ danh sách user
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUserList(){
         return userMapper.toUserResponse(userRepository.findAll());
     }
 
-    // Lấy thông tin user theo Id
+    // Lấy thông tin user theo Id (chỉ trả về nếu như id tài khoảng trùng với thông tin id lấy về)
+    @PostAuthorize("returnObject.username == authentication.name")
     public UserResponse getUserById(String id){
         return userMapper.toUserResponse(userRepository.findById(id).orElseThrow(()->new RuntimeException("User not found")));
     }
@@ -59,5 +66,13 @@ public class UserService {
     // Xóa tài khoảng
     public void deleteUser(String id){
         userRepository.deleteById(id);
+    }
+
+    // Lấy thông tin đăng nhập của tại khoảng hiện tại
+    public UserResponse getMyInfo(){
+        var context = SecurityContextHolder.getContext();
+        String name = context.getAuthentication().getName();
+        User user = userRepository.findByUsername(name).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
+        return userMapper.toUserResponse(user);
     }
 }

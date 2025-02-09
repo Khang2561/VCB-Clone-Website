@@ -4,6 +4,7 @@ import com.website.vcb.dto.request.ApiResponese;
 import com.website.vcb.dto.request.UserCreationRequest;
 import com.website.vcb.dto.request.UserUpdateRequest;
 import com.website.vcb.dto.response.UserResponse;
+import com.website.vcb.entity.User;
 import com.website.vcb.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,6 @@ public class UserController {
                 .build();
     }
 
-
     //Update thông tin cho user
    @PatchMapping("/{userId}")
    ApiResponese<UserResponse> updateUser(@RequestBody UserUpdateRequest request, @PathVariable("userId") String userId){
@@ -71,4 +71,11 @@ public class UserController {
                 .build();
     }
 
+    // Lấy thông tin user chính mình
+    @GetMapping("/myInfo")
+    ApiResponese<UserResponse> getMyInfo(){
+        return ApiResponese.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .build();
+    }
 }
